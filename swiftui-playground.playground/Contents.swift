@@ -1,94 +1,68 @@
 import SwiftUI
 import PlaygroundSupport
 import Combine
+import MapKit
 
-protocol ContentViewModelProtocol {
-    var tapsCount: AnyPublisher<Int, Never> { get }
-    func handleButtonTap()
-    func handleTextChanged(_ text: String)
-}
-
-class ContentViewModel: ContentViewModelProtocol {
-    private let tapsCountSubject = CurrentValueSubject<Int, Never>(0)
-    lazy var tapsCount: AnyPublisher<Int, Never> = tapsCountSubject.eraseToAnyPublisher()
-
-    func handleButtonTap() {
-        tapsCountSubject.send(tapsCountSubject.value + 1)
+struct MapView: UIViewRepresentable {
+    func makeUIView(context: Context) -> MKMapView {
+        MKMapView()
     }
 
-    func handleTextChanged(_ text: String) {
-        tapsCountSubject.send(111)
-    }
-}
-
-class SwiftUIViewModelWrapperBase<ViewModel> {
-    let viewModel: ViewModel
-
-    init(viewModel: ViewModel) {
-        self.viewModel = viewModel
+    func updateUIView(_ uiView: MKMapView, context: Context) {
+        let coordinate = CLLocationCoordinate2D(
+            latitude: 34.011286,
+            longitude: -116.166868
+        )
+        let span = MKCoordinateSpan(
+            latitudeDelta: 2.0,
+            longitudeDelta: 2.0
+        )
+        let region = MKCoordinateRegion(
+            center: coordinate,
+            span: span
+        )
+        uiView.setRegion(region, animated: true)
     }
 }
 
-protocol SomeProtocol {
-    var text2: String { get }
+struct CircleImage: View {
+    var body: some View {
+        Color.blue
+            .clipShape(Circle())
+            .overlay(
+                Circle()
+                    .stroke(Color.white, lineWidth: 2)
+            )
+            .shadow(radius: 10)
 
-    func handleButtonTap()
-    func handleTextChanged(_ text: String)
-}
-
-protocol IsLoadingable {
-    var isLoading: Bool { get }
-}
-
-class WrapperViewModel: SwiftUIViewModelWrapperBase<ContentViewModelProtocol>, SomeProtocol, IsLoadingable, ObservableObject {
-    @Published var isLoading: Bool = false
-    @Published var text2: String = ""
-    private var subscriptions: Set<AnyCancellable> = []
-
-    override init(viewModel: ContentViewModelProtocol) {
-        super.init(viewModel: viewModel)
-        viewModel.tapsCount
-            .map { "Taps: \($0)" }
-            .receive(on: DispatchQueue.main)
-            .assign(to: \.text2, on: self)
-            .store(in: &subscriptions)
-    }
-
-    func handleButtonTap() {
-        viewModel.handleButtonTap()
-    }
-
-    func handleTextChanged(_ text: String) {
-        viewModel.handleTextChanged(text)
     }
 }
 
 struct ContentView: View {
-    @ObservedObject var viewModel: WrapperViewModel
-
-    var body: some View {
+    public var body: some View {
         VStack {
-            Text(viewModel.text2)
-            Button("Button") {
-                self.viewModel.handleButtonTap()
+            MapView()
+                .edgesIgnoringSafeArea(.top)
+                .frame(height: 300)
+            CircleImage()
+                .offset(y: -130)
+                .padding(.bottom, -130)
+            VStack(alignment: .leading) {
+                Text("Header")
+                    .font(.title)
+                HStack(alignment: .top) {
+                    Text("Some Text")
+                        .font(.subheadline)
+                    Spacer()
+                    Text("Some other")
+                        .font(.subheadline)
+                }
             }
-            Form {
-                TextField(
-                    "Textfield",
-                    text: .init(get: { self.viewModel.text2 }, set: { self.viewModel.handleTextChanged($0) }),
-                    onEditingChanged: { print("Editing changed: \($0)") },
-                    onCommit: { print("commit") }
-                )
-            }
-        }.onTapGesture {
-            UIApplication.shared.keyWindow?.endEditing(true)
+            .padding()
+            Spacer()
         }
     }
 }
 
-let viewModel = ContentViewModel()
-let wrapper = WrapperViewModel(viewModel: viewModel)
-let view = ContentView(viewModel: wrapper)
-
-PlaygroundPage.current.setLiveView(view)
+PlaygroundPage.current.setLiveView(ContentView())
 PlaygroundPage.current.needsIndefiniteExecution = true
