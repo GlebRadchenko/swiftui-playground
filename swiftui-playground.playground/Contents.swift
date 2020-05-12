@@ -2,6 +2,8 @@ import SwiftUI
 import PlaygroundSupport
 import Combine
 
+// First method - with wrapper, allows to inject VM
+
 protocol ContentViewModelProtocol {
     var tapsCount: AnyPublisher<Int, Never> { get }
     func handleButtonTap()
@@ -90,5 +92,48 @@ let viewModel = ContentViewModel()
 let wrapper = WrapperViewModel(viewModel: viewModel)
 let view = ContentView(viewModel: wrapper)
 
-PlaygroundPage.current.setLiveView(view)
+//####################################################################################################################
+// no wrapper, can't inject but view model can be SwiftUI agnostic
+
+protocol AnotherViewModelProtocol {
+    var text: String { get }
+    func handleTap()
+}
+
+class AnotherViewModel: AnotherViewModelProtocol, ObservableObject {
+    @Published var text: String = "test"
+    var tapsCount = 0 { didSet { text = "\(tapsCount)" } }
+    func handleTap() { tapsCount += 1 }
+}
+
+class AnotherViewModelMock: AnotherViewModelProtocol, ObservableObject {
+    var text = ""
+    func handleTap() {}
+}
+
+struct AnotherView<ViewModel: AnotherViewModelProtocol & ObservableObject>: View {
+    @ObservedObject var viewModel: ViewModel
+
+    var body: some View {
+        VStack {
+            Text(viewModel.text)
+            Button(action: { self.viewModel.handleTap() }) {
+                Text("Button")
+            }
+        }
+    }
+}
+
+// this is the most important part here
+func createAnotherViewModel() -> some AnotherViewModelProtocol & ObservableObject {
+    return AnotherViewModel()
+    //return AnotherViewModelMock()
+}
+
+let anotherView = AnotherView(viewModel: createAnotherViewModel())
+
+PlaygroundPage.current.setLiveView(anotherView)
 PlaygroundPage.current.needsIndefiniteExecution = true
+
+var a: Float = 293.64999999999998
+print((a * 100) / 100)
