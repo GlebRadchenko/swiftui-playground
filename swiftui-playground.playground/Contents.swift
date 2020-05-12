@@ -134,6 +134,3 @@ let anotherView = AnotherView(viewModel: createAnotherViewModel())
 
 PlaygroundPage.current.setLiveView(anotherView)
 PlaygroundPage.current.needsIndefiniteExecution = true
-
-var a: Float = 293.64999999999998
-print((a * 100) / 100)
