@@ -132,5 +132,50 @@ func createAnotherViewModel() -> some AnotherViewModelProtocol & ObservableObjec
 
 let anotherView = AnotherView(viewModel: createAnotherViewModel())
 
-PlaygroundPage.current.setLiveView(anotherView)
+struct SomeData {
+    let value: Int
+}
+
+
+struct NavigationViewTest: View {
+    @State var data: [SomeData] = []
+    let futureData: [SomeData] = [.init(value: 0), .init(value: 1), .init(value: 2), .init(value: 3)]
+
+    var body: some View {
+        NavigationView {
+            VStack {
+                List(data, id: \.value) { value in
+                    NavigationLink(
+                        "Title: \(value.value)",
+                        destination: IntermediateRouter(data: value)
+                    )
+                }
+
+                Button("Tap Me") {
+                    self.data = self.futureData.shuffled()
+                }
+            }
+            .padding()
+        }
+    }
+}
+
+struct IntermediateRouter: View {
+    let data: SomeData
+
+    init(data: SomeData) {
+        self.data = data
+        print("Inited")
+    }
+
+    func createView() -> some View {
+        Text("\(data.value)")
+    }
+
+    var body: some View {
+        createView()
+    }
+}
+
+PlaygroundPage.current.setLiveView(NavigationViewTest())
 PlaygroundPage.current.needsIndefiniteExecution = true
