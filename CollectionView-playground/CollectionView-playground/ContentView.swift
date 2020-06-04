@@ -16,13 +16,13 @@ protocol CollectionViewLayout {
     func layout(content: AnyView, elementID: ID, geometry: GeometryProxy) -> ModifiedView
 }
 
-class HorizontalCollectionViewLayout: CollectionViewLayout {
-    typealias ID = String
+class HorizontalCollectionViewLayout<UniqueID: Hashable>: CollectionViewLayout {
+    typealias ID = UniqueID
 
-    fileprivate var attributes: [String: LayoutAttributes] = [:]
+    fileprivate var attributes: [ID: LayoutAttributes] = [:]
     var lastAttributes: LayoutAttributes?
 
-    func layout(content: AnyView, elementID: String, geometry: GeometryProxy) -> some View {
+    func layout(content: AnyView, elementID: ID, geometry: GeometryProxy) -> some View {
         content
             .alignmentGuide(.leading) { dimensions in
                 self.leadingAlignmentGuide(id: elementID, dimensions: dimensions, geometry: geometry)
@@ -33,7 +33,7 @@ class HorizontalCollectionViewLayout: CollectionViewLayout {
     }
 
     // MARK: - Private
-    fileprivate func leadingAlignmentGuide(id: String, dimensions: ViewDimensions, geometry: GeometryProxy) -> CGFloat {
+    fileprivate func leadingAlignmentGuide(id: ID, dimensions: ViewDimensions, geometry: GeometryProxy) -> CGFloat {
         if let layoutAttributes = attributes[id], layoutAttributes.geometrySize == geometry.size {
             lastAttributes = layoutAttributes
             return -layoutAttributes.x
@@ -84,7 +84,7 @@ class HorizontalCollectionViewLayout: CollectionViewLayout {
         return -newAttributes.x
     }
 
-    fileprivate func topAlignmentGuide(id: String, dimensions: ViewDimensions, geometry: GeometryProxy) -> CGFloat {
+    fileprivate func topAlignmentGuide(id: ID, dimensions: ViewDimensions, geometry: GeometryProxy) -> CGFloat {
         -(attributes[id]?.y ?? 0)
     }
 
