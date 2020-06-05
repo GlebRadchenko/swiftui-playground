@@ -25,20 +25,21 @@ class HorizontalPageLayout<UniqueID: Hashable>: CollectionViewLayout {
             }
     }
 
+    func invalidate() {
+        attributes.removeAll()
+        lastAttributes = nil
+    }
+
     // MARK: - Private
     fileprivate func leadingAlignmentGuide(id: ID, dimensions: ViewDimensions, geometry: GeometryProxy) -> CGFloat {
         if let layoutAttributes = attributes[id], layoutAttributes.geometrySize == geometry.size {
             lastAttributes = layoutAttributes
             return -layoutAttributes.x
         } else if attributes[id] != nil {
-            attributes.removeAll()
-            lastAttributes = nil
+            invalidate()
         }
 
         var newAttributes = LayoutAttributes(
-            x: 0,
-            y: 0,
-            page: 0,
             geometrySize: geometry.size,
             dimensions: dimensions
         )
@@ -82,13 +83,6 @@ class HorizontalPageLayout<UniqueID: Hashable>: CollectionViewLayout {
     }
 
     // MARK: - Private
-    func maxOriginY(for page: Int) -> CGFloat? {
-        attributes.values
-            .filter { $0.page == page }
-            .map { $0.y }
-            .max()
-    }
-
     func maxY(for page: Int) -> CGFloat? {
         attributes.values
             .filter { $0.page == page }
@@ -97,9 +91,9 @@ class HorizontalPageLayout<UniqueID: Hashable>: CollectionViewLayout {
     }
 
     struct LayoutAttributes {
-        var x: CGFloat
-        var y: CGFloat
-        var page: Int
+        var x: CGFloat = 0
+        var y: CGFloat = 0
+        var page: Int = 0
         let geometrySize: CGSize
         let dimensions: ViewDimensions
     }

@@ -21,7 +21,11 @@ class CollectionViewProvider: CollectionViewDataSource, CollectionViewDelegate {
     @Published var items: [SomeItem] = []
 
     init() {
-        items = (0...20).map {
+        generateNewItems()
+    }
+
+    func generateNewItems() {
+        items = (0...100).map {
             SomeItem(id: "\($0)")
         }
     }
@@ -42,13 +46,13 @@ struct ExampleView: View {
 
     var body: some View {
         VStack {
-            Divider()
+            Spacer()
             CollectionView(
                 layout: HorizontalPageLayout(),
                 delegate: provider,
                 dataSource: provider
             )
-            Divider()
+            .border(Color.red, width: 2)
             Spacer()
         }
     }

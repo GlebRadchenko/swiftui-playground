@@ -13,6 +13,7 @@ protocol CollectionViewLayout {
     associatedtype ModifiedView: View
 
     func layout(content: AnyView, elementID: ID, geometry: GeometryProxy) -> ModifiedView
+    func invalidate()
 }
 
 protocol CollectionViewDataSource: ObservableObject {
@@ -45,17 +46,25 @@ struct CollectionView<
 
     var body: some View {
         GeometryReader { [delegate, dataSource, layout] geometry in
-            ScrollView([.horizontal], showsIndicators: true) { [delegate, dataSource, layout] in
-                ZStack(alignment: .topLeading) {
-                    ForEach(dataSource.items, id: \.id) { item in
-                        layout.layout(
-                            content: AnyView(delegate.view(for: item)),
-                            elementID: item.id,
-                            geometry: geometry
-                        )
+            ScrollView([.horizontal], showsIndicators: true) {
+                VStack(alignment: .leading) {
+                    ZStack(alignment: .topLeading) {
+                        ForEach(dataSource.items, id: \.id) { item in
+                            layout.layout(
+                                content: AnyView(delegate.view(for: item)),
+                                elementID: item.id,
+                                geometry: geometry
+                            )
+                        }
                     }
+                    .border(Color.green, width: 2)
+                    Spacer()
                 }
+                .border(Color.blue, width: 2)
             }
+        }
+        .onReceive(dataSource.objectWillChange) { [layout] _ in
+            layout.invalidate()
         }
     }
 }
