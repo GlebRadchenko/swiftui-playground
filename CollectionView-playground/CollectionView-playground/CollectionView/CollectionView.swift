@@ -12,6 +12,8 @@ protocol CollectionViewLayout {
     associatedtype ID: Hashable
     associatedtype ModifiedView: View
 
+    var preferredScrollViewAxis: Axis.Set { get }
+
     func layout(content: AnyView, elementID: ID, geometry: GeometryProxy) -> ModifiedView
     func invalidate()
 }
@@ -46,7 +48,7 @@ struct CollectionView<
 
     var body: some View {
         GeometryReader { [delegate, dataSource, layout] geometry in
-            ScrollView([.horizontal], showsIndicators: true) {
+            ScrollView(layout.preferredScrollViewAxis, showsIndicators: true) {
                 VStack(alignment: .leading) {
                     ZStack(alignment: .topLeading) {
                         ForEach(dataSource.items, id: \.id) { item in

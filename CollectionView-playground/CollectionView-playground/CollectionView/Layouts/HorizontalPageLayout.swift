@@ -13,7 +13,11 @@ class HorizontalPageLayout<UniqueID: Hashable>: CollectionViewLayout {
     typealias ID = UniqueID
 
     fileprivate var attributes: [ID: LayoutAttributes] = [:]
-    var lastAttributes: LayoutAttributes?
+    fileprivate var lastAttributes: LayoutAttributes?
+
+    var preferredScrollViewAxis: Axis.Set {
+        .horizontal
+    }
 
     func layout(content: AnyView, elementID: ID, geometry: GeometryProxy) -> some View {
         content
